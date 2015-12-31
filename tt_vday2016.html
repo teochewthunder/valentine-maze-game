@@ -1,0 +1,402 @@
+<html>
+	<head>
+		<title>Find</title>
+
+		<style>
+			#board_wrapper
+			{
+				width:602px;
+				height:402px;
+				margin:50px auto 0 auto;
+				border:2px solid #000000;
+				background:url(http://1.bp.blogspot.com/-jqes-QMldd8/VeMeZuJQOwI/AAAAAAAAA7A/I0SDvZhtZP4/s1600/vday2016_bg.jpg) left top no-repeat;
+				background-size:cover;
+			}
+
+			.tile_wrapper
+			{
+				width:100px;
+				height:100px;
+				position:absolute;
+				cursor:pointer;
+			}
+
+			.text_wrapper
+			{
+				width:100%;
+				height:auto;
+				min-height:30px;
+				text-align:center;
+				color:#FF4400;
+				font-size:14px;
+			}
+		</style>
+
+		<script>
+			var objtiletype=[];
+			objtiletype[0] = {pos:"0px 0px", n:0, e:1, s:1, w:0};
+			objtiletype[1] = {pos:"-200px 0px", n:0, e:0, s:1, w:1}; 
+			objtiletype[2] = {pos:"-200px -200px", n:1, e:0, s:0, w:1}; 
+			objtiletype[3] = {pos:"0px -200px", n:1, e:1, s:0, w:0}; 
+			objtiletype[4] = {pos:"-100px 0px", n:0, e:1, s:0, w:1}; 
+			objtiletype[5] = {pos:"0px -100px", n:1, e:0, s:1, w:0}; 
+			objtiletype[6] = {pos:"-100px -200px", n:0, e:1, s:0, w:1}; 
+			objtiletype[7] = {pos:"-200px -100px", n:1, e:0, s:1, w:0};
+			objtiletype[8] = {pos:"-52px -100px", n:0, e:1, s:0, w:0};
+			objtiletype[9] = {pos:"-148px -100px", n:0, e:0, s:0, w:1};  
+
+			var objtiles=[];
+			var path=[];
+			var gametime;
+			var started=false;
+
+			function reset()
+			{
+				var start_id,end_id;
+				var tiletypeindex;
+
+				do
+				{
+					resetboard();
+					start_id=generaterandomno(0,3) * 6;
+					objtiles[start_id].n=objtiletype[8].n;
+					objtiles[start_id].s=objtiletype[8].s;
+					objtiles[start_id].e=objtiletype[8].e;
+					objtiles[start_id].w=objtiletype[8].w;
+					end_id=(generaterandomno(1,4) * 6) - 1;
+					objtiles[end_id].n=objtiletype[9].n;
+					objtiles[end_id].s=objtiletype[9].s;
+					objtiles[end_id].e=objtiletype[9].e;
+					objtiles[end_id].w=objtiletype[9].w;
+
+					document.getElementById("tile"+start_id).style.backgroundPosition=objtiletype[8].pos;
+					document.getElementById("tile"+end_id).style.backgroundPosition=objtiletype[9].pos;
+
+					createpath(start_id,end_id);
+				}
+				while (path[path.length-1]==-1);
+
+				//illustrate final path
+				for (var i=1;i<path.length-1;i++)
+				{
+					tiletypeindex=generaterandomno(0,3);
+
+					if (objtiles[path[i-1]].x==objtiles[path[i]].x&&objtiles[path[i+1]].x==objtiles[path[i]].x)
+					{
+						tiletypeindex=generaterandomno(4,7);
+					}
+
+					if (objtiles[path[i-1]].y==objtiles[path[i]].y&&objtiles[path[i+1]].y==objtiles[path[i]].y)
+					{
+						tiletypeindex=generaterandomno(4,7);
+					}
+
+					document.getElementById("tile"+path[i]).style.backgroundPosition=objtiletype[tiletypeindex].pos;
+
+					objtiles[path[i]].n=objtiletype[tiletypeindex].n;
+					objtiles[path[i]].e=objtiletype[tiletypeindex].e;
+					objtiles[path[i]].s=objtiletype[tiletypeindex].s;
+					objtiles[path[i]].w=objtiletype[tiletypeindex].w;
+
+					//document.getElementById("tile"+path[i]).style.backgroundColor="rgba(254,200,0,0."+i+")";
+				}
+
+				sendmessage("Click <span style='cursor:pointer' onclick='reset();timer_start();'><b>here</b></span> to begin");
+			}
+
+			function rotatetile(vartile,varsec)
+			{
+				if (started)
+				{
+					var timer=document.getElementById("pnlTimer");
+					var seconds=timer.innerHTML;
+					var degrees=vartile.style.transform;
+					degrees=degrees.replace("rotate(","");
+					degrees=degrees.replace("deg)","");
+					degrees=parseInt(degrees)+90;
+					vartile.style.transition="all "+varsec+"s";
+					vartile.style.transform="rotate("+degrees+"deg)";
+					vartile.style.WebkitTransition="all "+varsec+"s";
+					vartile.style.WebkitTransform="rotate("+degrees+"deg)";
+
+					var id=parseInt(vartile.id.replace("tile",""));
+					var n,e,s,w;
+					n=objtiles[id].w;
+					e=objtiles[id].n;
+					s=objtiles[id].e;
+					w=objtiles[id].s;
+
+					objtiles[id].n=n;
+					objtiles[id].e=e;
+					objtiles[id].s=s;
+					objtiles[id].w=w;
+
+					if (findcurrentpath()) 
+					{
+						clearInterval(gametime);
+						alert("Congratulations! You have found true love!");
+						sendmessage("Well done! Click <span style='cursor:pointer' onclick='reset();timer_start();'><b>here</b></span> to replay");
+						started=false;	
+					}			
+				}
+				else
+				{
+					alert("Please start the game first.");
+					return false;
+				}
+			}
+
+			function resetboard()
+			{
+				var board=document.getElementById("board_wrapper");
+				board.innerHTML="";
+				
+				var rowcounter=0,colcounter=0;
+				var tile,tiletypeindex;
+
+				for (var i=0;i<24;i++)
+				{
+					tiletypeindex=generaterandomno(0,7);
+					objtiles[i] = {id:i, x:colcounter, y:rowcounter, n:objtiletype[tiletypeindex].n,s:objtiletype[tiletypeindex].s,e:objtiletype[tiletypeindex].e,w:objtiletype[tiletypeindex].w};
+
+					tile=document.createElement("div");
+					tile.id="tile"+i;
+
+					tile.className="tile_wrapper";
+					tile.style.marginLeft=objtiles[i].x*100+"px";
+					tile.style.marginTop=objtiles[i].y*100+"px";
+					tile.style.backgroundImage=document.getElementById("ddlDifficulty").value;
+					tile.style.backgroundPosition=objtiletype[tiletypeindex].pos;
+					tile.style.backgroundRepeat="no-repeat";
+					tile.style.transform="rotate(0deg)";
+					tile.onclick=function(){rotatetile(this,0.3);};
+					board.appendChild(tile);
+
+					if (colcounter % 5==0&&colcounter>0)
+					{
+						rowcounter++;
+						colcounter=0;
+					}
+					else
+					{
+						colcounter++;
+					}
+				}
+			}
+
+			function createpath(varstart,varend)
+			{	
+				path=[];
+				var next_id=varstart;
+				path[0]=varstart;
+				var i=1;
+
+				sendmessage("Please wait. Evaluating paths...");
+
+				do 
+				{
+					next_id=nexttileid(next_id);
+					path[i]=next_id;
+					i++;
+
+					if (next_id==-1)
+					{
+						path=[];
+						next_id=varstart;
+						path[0]=varstart;
+						i=1;
+					}
+				}
+				while (next_id!=varend);
+			}
+
+			function nexttileid(varid)
+			{
+				var row,col;
+				row=objtiles[varid].y;
+				col=objtiles[varid].x;
+
+				var n=1,s=1,e=1,w=1;
+
+				if (row==0) n=-1;
+				if (row==3) s=-1;
+				if (col==0) w=-1;
+				if (col==5) e=-1;
+
+				if (n==1) n=varid-6;
+				if (s==1) s=varid+6;
+				if (w==1) w=varid-1;
+				if (e==1) e=varid+1;
+
+				var directions=[];
+				var currentdirectionindex=-1;
+
+				if (path.indexOf(n)==-1&&n!=-1) {currentdirectionindex++;directions[currentdirectionindex]=n;}
+				if (path.indexOf(s)==-1&&s!=-1) {currentdirectionindex++;directions[currentdirectionindex]=s;}
+				if (path.indexOf(w)==-1&&w!=-1) {currentdirectionindex++;directions[currentdirectionindex]=w;}
+				if (path.indexOf(e)==-1&&e!=-1) {currentdirectionindex++;directions[currentdirectionindex]=e;}
+
+				if (directions.length==0) 
+				{
+					return -1;
+				}
+				else
+				{	
+					if (directions.length==1) return directions[0];
+					if (directions.length>1) return directions[generaterandomno(0,directions.length-1)];
+				}
+			}
+
+			function findcurrentpath()
+			{
+				var next_id,current_id=path[0];
+				var trynext;
+				var direction;
+
+				if (objtiles[current_id].n==1) direction="n";
+				if (objtiles[current_id].s==1) direction="s";
+				if (objtiles[current_id].e==1) direction="e";
+				if (objtiles[current_id].w==1) direction="w";	
+			
+				do
+				{
+					next_id=-1;
+
+					if (direction=="n")
+					{
+						if (objtiles[current_id].y>0) 
+						{
+							trynext=current_id-6;
+
+							if (objtiles[trynext].s==1)
+							{
+								next_id=trynext;
+								if (objtiles[trynext].n==1) direction="n";
+								if (objtiles[trynext].e==1) direction="e";
+								if (objtiles[trynext].w==1) direction="w";
+								current_id=next_id;
+							}
+						}
+					}
+
+					if (direction=="s")
+					{
+						if (objtiles[current_id].y<3) 
+						{
+							trynext=current_id+6;
+
+							if (objtiles[trynext].n==1)
+							{
+								next_id=trynext;
+								if (objtiles[trynext].s==1) direction="s";
+								if (objtiles[trynext].e==1) direction="e";
+								if (objtiles[trynext].w==1) direction="w";
+								current_id=next_id;	
+							}
+						}
+					}
+
+					if (direction=="e")
+					{
+						if (objtiles[current_id].x<5) 
+						{
+							trynext=current_id+1;
+
+							if (objtiles[trynext].w==1)
+							{
+								next_id=trynext;
+								if (objtiles[trynext].n==1) direction="n";
+								if (objtiles[trynext].s==1) direction="s";
+								if (objtiles[trynext].e==1) direction="e";
+								current_id=next_id;	
+							}
+						}
+					}
+
+					if (direction=="w")
+					{
+						if (objtiles[current_id].x>0) 
+						{
+							trynext=current_id-1;
+							
+							if (objtiles[trynext].e==1)
+							{
+								next_id=trynext;
+								if (objtiles[trynext].n==1) direction="n";
+								if (objtiles[trynext].s==1) direction="s";
+								if (objtiles[trynext].w==1) direction="w";	
+								current_id=next_id;
+							}
+						}
+					}
+				} 
+				while (next_id!=-1&&next_id!=path[path.length-1])
+
+				if (next_id==path[path.length-1])
+				{
+					return true;
+				}
+				else
+				{
+					return false;
+				}
+			}
+
+			function generaterandomno(varmin,varmax)
+			{
+				return Math.floor((Math.random() * (varmax-varmin+1)) + varmin);
+			}
+
+			function sendmessage(varmessage)
+			{
+				document.getElementById("pnlMessage").innerHTML=varmessage;
+			}
+
+			function timer_start()
+			{
+				var timer=document.getElementById("pnlTimer");
+				timer.innerHTML="Time left: 60 seconds";
+
+				clearInterval(gametime);
+				gametime=setInterval(function(){timer_decrement();},1000);
+				started=true;
+			}
+
+			function timer_decrement()
+			{
+				var timer=document.getElementById("pnlTimer");
+				var seconds=timer.innerHTML;
+				seconds=seconds.replace(" seconds","");
+				seconds=seconds.replace("Time left: ","");
+				seconds=parseInt(seconds);
+
+				if (seconds==0)
+				{
+					clearInterval(gametime);
+					alert("Times up! Better luck next time!");
+					started=false;
+				}
+				else
+				{
+					seconds--;
+					timer.innerHTML="Time left: "+seconds+" seconds";
+				}
+			}
+
+		</script>
+	</head>
+	<body onLoad="reset();">
+		<div class="text_wrapper">
+			Difficulty: 
+			<select id="ddlDifficulty">
+				<option value="url(http://4.bp.blogspot.com/-c4oUkLuF5RA/VbvAvlQ1-TI/AAAAAAAAA3w/ezN8VCQsSdI/s1600/vday2016_simple.png)" selected>Easy</option>
+				<option value="url(http://4.bp.blogspot.com/-B6y2VM-myzQ/Vbu72m6zlvI/AAAAAAAAA3I/Tdu1QR0XgRg/s1600/vday2016.png)">Hard</option>
+			</select>
+		</div>
+		<div id="pnlMessage" class="text_wrapper"></div>
+		<div id="pnlTimer" class="text_wrapper">Time left: 0 seconds</div>
+		<div id="board_wrapper">
+
+		</div>
+	</body>
+</html>
