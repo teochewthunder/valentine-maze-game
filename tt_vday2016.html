@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
 	<head>
 		<title>Find</title>
@@ -9,7 +10,7 @@
 				height:402px;
 				margin:50px auto 0 auto;
 				border:2px solid #000000;
-				background:url(http://1.bp.blogspot.com/-jqes-QMldd8/VeMeZuJQOwI/AAAAAAAAA7A/I0SDvZhtZP4/s1600/vday2016_bg.jpg) left top no-repeat;
+				background:url(vmaze.jpg) left top no-repeat;
 				background-size:cover;
 			}
 
@@ -98,11 +99,12 @@
 					objtiles[path[i]].s=objtiletype[tiletypeindex].s;
 					objtiles[path[i]].w=objtiletype[tiletypeindex].w;
 
-					//document.getElementById("tile"+path[i]).style.backgroundColor="rgba(254,200,0,0."+i+")";
+					//document.getElementById("tile"+path[i]).style.backgroundColor="#FF4400";
 				}
 
 				sendmessage("Click <span style='cursor:pointer' onclick='reset();timer_start();'><b>here</b></span> to begin");
 			}
+
 
 			function rotatetile(vartile,varsec)
 			{
@@ -116,8 +118,6 @@
 					degrees=parseInt(degrees)+90;
 					vartile.style.transition="all "+varsec+"s";
 					vartile.style.transform="rotate("+degrees+"deg)";
-					vartile.style.WebkitTransition="all "+varsec+"s";
-					vartile.style.WebkitTransform="rotate("+degrees+"deg)";
 
 					var id=parseInt(vartile.id.replace("tile",""));
 					var n,e,s,w;
@@ -271,10 +271,10 @@
 							if (objtiles[trynext].s==1)
 							{
 								next_id=trynext;
+								current_id=next_id;
 								if (objtiles[trynext].n==1) direction="n";
 								if (objtiles[trynext].e==1) direction="e";
 								if (objtiles[trynext].w==1) direction="w";
-								current_id=next_id;
 							}
 						}
 					}
@@ -288,10 +288,10 @@
 							if (objtiles[trynext].n==1)
 							{
 								next_id=trynext;
+								current_id=next_id;
 								if (objtiles[trynext].s==1) direction="s";
 								if (objtiles[trynext].e==1) direction="e";
-								if (objtiles[trynext].w==1) direction="w";
-								current_id=next_id;	
+								if (objtiles[trynext].w==1) direction="w";	
 							}
 						}
 					}
@@ -305,10 +305,10 @@
 							if (objtiles[trynext].w==1)
 							{
 								next_id=trynext;
+								current_id=next_id;
 								if (objtiles[trynext].n==1) direction="n";
 								if (objtiles[trynext].s==1) direction="s";
-								if (objtiles[trynext].e==1) direction="e";
-								current_id=next_id;	
+								if (objtiles[trynext].e==1) direction="e";	
 							}
 						}
 					}
@@ -322,10 +322,10 @@
 							if (objtiles[trynext].e==1)
 							{
 								next_id=trynext;
+								current_id=next_id;
 								if (objtiles[trynext].n==1) direction="n";
 								if (objtiles[trynext].s==1) direction="s";
 								if (objtiles[trynext].w==1) direction="w";	
-								current_id=next_id;
 							}
 						}
 					}
@@ -382,15 +382,14 @@
 					timer.innerHTML="Time left: "+seconds+" seconds";
 				}
 			}
-
 		</script>
 	</head>
-	<body onLoad="reset();">
+	<body onload="reset();">
 		<div class="text_wrapper">
 			Difficulty: 
 			<select id="ddlDifficulty">
-				<option value="url(http://4.bp.blogspot.com/-c4oUkLuF5RA/VbvAvlQ1-TI/AAAAAAAAA3w/ezN8VCQsSdI/s1600/vday2016_simple.png)" selected>Easy</option>
-				<option value="url(http://4.bp.blogspot.com/-B6y2VM-myzQ/Vbu72m6zlvI/AAAAAAAAA3I/Tdu1QR0XgRg/s1600/vday2016.png)">Hard</option>
+				<option value="url(easy.png)" selected>Easy</option>
+				<option value="url(hard.png)">Hard</option>
 			</select>
 		</div>
 		<div id="pnlMessage" class="text_wrapper"></div>
