@@ -10,6 +10,6 @@ This little project is mostly JavaScript, with a little supporting HTML and CSS.
 
 ## JavaScript
 - Each div will be rotated 90 degrees clockwise with each click. Click event is active when the game begins, and disabled when it ends.
-- An algorithmn is used to determine if a complete path has been found. Basically, an array is created, starting with the **Start Div** as the first element. If a div is "connected" to it and in turn has another div "connected" to it, it is added to the array. If not, the algorithm returns `false`. If the next div is the **End Div**, the algorithmn returns *true*.
+- An algorithmn is used to determine if a complete path has been found. Basically, an array is created, starting with the **Start Div** as the first element. If a div is "connected" to it and in turn has another div "connected" to it, it is added to the array. If not, the algorithm returns `false`. If the next div is the **End Div**, the algorithmn returns `true`.
 - During initialization, the **Start Div** is placed on the far left of the grid, and the **End Div** on the far right. The rest of the grid is populated by square divs that randomly have **perpendicular** and **parallel** "entry" points.
 - An algorithmn is used to determine if there is any possible complete path between **Start Div** and **End Div**. If not, restart initialization.
